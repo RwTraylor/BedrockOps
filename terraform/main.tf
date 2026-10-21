@@ -41,9 +41,11 @@ resource "aws_dynamodb_table" "audit_ledger" {
 
 # Least-privilege policy for the self-hosted BedrockOps server.
 # Matches exactly what the code calls:
-#   bedrock_agent.probe_service / invoke, ledger._persist.
-# No create/delete permissions anywhere; probes are read-only and the
-# only write is PutItem to this one audit table.
+#   bedrock_agent.probe_service / invoke, ledger._persist,
+#   ledger.read_history (v2: Query reads the audit trail back).
+# No create/delete permissions anywhere; probes are read-only, the
+# only write is PutItem to this one audit table, and the only read
+# beyond the service probes is a Query on that same table.
 resource "aws_iam_policy" "bedrockops_app" {
   name = "bedrockops-app-policy"
   policy = jsonencode({
@@ -62,9 +64,9 @@ resource "aws_iam_policy" "bedrockops_app" {
         Resource = "*"
       },
       {
-        Sid      = "AuditLedgerWriteOnly"
+        Sid      = "AuditLedgerWriteAndHistoryRead"
         Effect   = "Allow"
-        Action   = ["dynamodb:PutItem"]
+        Action   = ["dynamodb:PutItem", "dynamodb:Query"]
         Resource = aws_dynamodb_table.audit_ledger.arn
       }
     ]

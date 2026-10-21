@@ -9,11 +9,16 @@ decision so the rest of the system (and the test suite) can run offline.
 It does NOT claim a live Bedrock call has been made.
 `probe_service()` makes one real read-only AWS call per service and
 raises on failure rather than faking health.
+
+v2.1 (2026-10-10): the model call now goes through the Bedrock
+Converse API, which is provider-agnostic (Claude, Amazon Nova, Meta
+Llama, Mistral, etc. all share one request/response shape). This
+removes the old Anthropic-only InvokeModel payload, so BEDROCK_MODEL_ID
+can point at any Converse-supported model without code changes.
 """
-import json
 import os
 
-DEFAULT_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0")
+DEFAULT_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-sonnet-5")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 
@@ -55,6 +60,35 @@ def route_request(prompt: str) -> dict:
     return {"action": "system_probe", "prompt": prompt}
 
 
+def _converse_reply(prompt: str) -> dict:
+    """
+    One real Bedrock model call via the Converse API (provider-agnostic:
+    the same call shape works for Anthropic, Amazon Nova, Meta Llama,
+    Mistral, and the other Converse-supported families). Raises on any
+    failure — callers translate that into an honest live=False result.
+    Invocation only: this never mutates AWS state.
+    """
+    import boto3  # imported here so offline tests never require AWS
+
+    client = boto3.client("bedrock-runtime", region_name=AWS_REGION)
+    response = client.converse(
+        modelId=DEFAULT_MODEL_ID,
+        messages=[{"role": "user", "content": [{"text": prompt}]}],
+        inferenceConfig={"maxTokens": 512},
+    )
+    message = response.get("output", {}).get("message", {})
+    text = "".join(
+        block.get("text", "")
+        for block in message.get("content", [])
+        if isinstance(block, dict)
+    )
+    return {
+        "text": text,
+        "stop_reason": response.get("stopReason"),
+        "usage": response.get("usage", {}),
+    }
+
+
 def invoke(prompt: str) -> dict:
     """
     Call Amazon Bedrock if credentials/region are configured, else fall
@@ -66,16 +100,46 @@ def invoke(prompt: str) -> dict:
         return {"live": False, **decision}
 
     try:
-        import boto3  # imported here so offline tests never require AWS
-
-        client = boto3.client("bedrock-runtime", region_name=AWS_REGION)
-        body = json.dumps({
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 512,
-            "messages": [{"role": "user", "content": prompt}],
-        })
-        response = client.invoke_model(modelId=DEFAULT_MODEL_ID, body=body)
-        payload = json.loads(response["body"].read())
+        payload = _converse_reply(prompt)
         return {"live": True, "model": DEFAULT_MODEL_ID, "response": payload, **decision}
     except Exception as exc:  # no credentials, no network, etc. — stay honest
-        return {"live": False, "fallback_reason": type(exc).__name__, **decision}
+        return {
+            "live": False,
+            "fallback_reason": type(exc).__name__,
+            "error": str(exc),
+            **decision,
+        }
+
+
+def execute_approved(prompt: str) -> dict:
+    """
+    Execute a request a human operator has explicitly approved.
+
+    Makes the same Bedrock Converse call invoke() would make, but
+    without re-applying the keyword gate: the v2 console gate (pending
+    proposal + operator Approve click) is the control that replaces
+    it. Nothing here mutates AWS state — the only outbound call is to
+    Bedrock. Without credentials it returns live=False with the
+    failure named, exactly like invoke(). Never call this without a
+    recorded human approval in front of it.
+    """
+    decision = route_request(prompt)
+    try:
+        payload = _converse_reply(prompt)
+        return {
+            "live": True,
+            "executed": True,
+            "approved": True,
+            "model": DEFAULT_MODEL_ID,
+            "response": payload,
+            **decision,
+        }
+    except Exception as exc:  # no credentials, no network, etc. — stay honest
+        return {
+            "live": False,
+            "executed": True,
+            "approved": True,
+            "fallback_reason": type(exc).__name__,
+            "error": str(exc),
+            **decision,
+        }

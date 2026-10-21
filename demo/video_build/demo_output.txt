@@ -1,0 +1,103 @@
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/hatch/workspace/BedrockOps/demo/demo_client.py", line 62, in <module>
+  |     anyio.run(main)
+  |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/anyio/_core/_eventloop.py", line 83, in run
+  |     return async_backend.run(func, args, {}, backend_options)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2548, in run
+  |     return runner.run(wrapper())
+  |            ^^^^^^^^^^^^^^^^^^^^^
+  |   File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2531, in wrapper
+  |     return await func(*args)
+  |            ^^^^^^^^^^^^^^^^^
+  |   File "/home/hatch/workspace/BedrockOps/demo/demo_client.py", line 34, in main
+  |     async with streamable_http_client(URL) as (read, write):
+  |   File "/usr/lib/python3.12/contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/mcp/client/streamable_http.py", line 766, in streamable_http_client
+  |     async with (
+  |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 847, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpx2/_transports/default.py", line 98, in map_httpcore_exceptions
+    |     yield
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpx2/_transports/default.py", line 388, in handle_async_request
+    |     resp = await self._pool.handle_async_request(req)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_async/connection_pool.py", line 242, in handle_async_request
+    |     raise exc from None
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_async/connection_pool.py", line 224, in handle_async_request
+    |     response = await connection.handle_async_request(pool_request.request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_async/http_proxy.py", line 196, in handle_async_request
+    |     return await self._connection.handle_async_request(proxy_request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_async/connection.py", line 96, in handle_async_request
+    |     return await self._connection.handle_async_request(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_async/http11.py", line 125, in handle_async_request
+    |     raise exc
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_async/http11.py", line 97, in handle_async_request
+    |     ) = await self._receive_response_headers(**kwargs)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_async/http11.py", line 167, in _receive_response_headers
+    |     event = await self._receive_event(timeout=timeout)
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_async/http11.py", line 200, in _receive_event
+    |     data = await self._network_stream.read(self.READ_NUM_BYTES, timeout=timeout)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_backends/anyio.py", line 34, in read
+    |     with map_exceptions(exc_map):
+    |   File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpcore2/_exceptions.py", line 17, in map_exceptions
+    |     raise to_exc(exc) from exc
+    | httpcore2.ReadError
+    | 
+    | The above exception was the direct cause of the following exception:
+    | 
+    | Traceback (most recent call last):
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/anyio/_core/_tasks.py", line 327, in _run_coro
+    |     retval = await self._coro
+    |              ^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/mcp/client/streamable_http.py", line 355, in _run_request_post
+    |     await post_fn()
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/mcp/client/streamable_http.py", line 662, in handle_request_async
+    |     await self._handle_post_request(ctx)
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/mcp/client/streamable_http.py", line 370, in _handle_post_request
+    |     async with stream_within_origin(
+    |   File "/usr/lib/python3.12/contextlib.py", line 210, in __aenter__
+    |     return await anext(self.gen)
+    |            ^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/mcp/shared/_httpx_utils.py", line 131, in stream_within_origin
+    |     response = await client.send(request, stream=True, follow_redirects=False)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpx2/_client.py", line 1818, in send
+    |     response = await self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpx2/_client.py", line 1846, in _send_handling_auth
+    |     response = await self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpx2/_client.py", line 1881, in _send_handling_redirects
+    |     response = await self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpx2/_client.py", line 1915, in _send_single_request
+    |     response = await transport.handle_async_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpx2/_transports/default.py", line 387, in handle_async_request
+    |     with map_httpcore_exceptions():
+    |   File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "/home/hatch/workspace/BedrockOps/.venv/lib/python3.12/site-packages/httpx2/_transports/default.py", line 115, in map_httpcore_exceptions
+    |     raise mapped_exc(message) from exc
+    | httpx2.ReadError
+    +------------------------------------
+DEMO_EXIT=1

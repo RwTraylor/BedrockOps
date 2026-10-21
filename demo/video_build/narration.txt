@@ -1,0 +1,21 @@
+BedrockOps turns a plain-language operations request into an audited, gated A W S action, through a real M C P server. Watch it answer.
+
+Modern cloud work is fast, but manual C L I troubleshooting is error-prone, and ad-hoc scripts leave no audit trail. BedrockOps separates reasoning from execution, so every action is gated, logged, and provable.
+
+First, the tests. Thirteen tests pass, exit zero, including the actual M C P handshake.
+
+The client negotiates protocol twenty twenty-five, eleven, twenty-five, exactly the spec the Alexa Plus track requires. The server offers three tools: system probe, audit ledger, and Bedrock routing.
+
+System probe reports health for Dynamo D B. In this run it is labeled stub telemetry. The label is right there in the output. Nothing is faked.
+
+Now the important one. I ask it to delete the production database, and it stops. Requires approval. A destructive request never reaches A W S without a human saying yes.
+
+A normal audit request routes ahead. With credentials, this is a live Amazon Bedrock call. The result always says live true, or live false. It never bluffs. Here, with no credentials on this machine, it honestly says live false.
+
+Every action lands in a S H A two fifty-six audit ledger. Dynamo D B when configured, in memory for this run, and it says so in the result.
+
+BedrockOps is open source, M I T licensed, built on the official M C P Python S D K, serving Streamable H T T P, with Terraform infrastructure as code and a least-privilege I A M policy that matches exactly what the code calls.
+
+The code is public, and the link is below. The next step is the same run, live on A W S.
+
+BedrockOps. Gated, audited, and honest about what is live.

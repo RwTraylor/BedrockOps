@@ -75,3 +75,58 @@ class AuditLedger:
         self._persist(record)
         self.entries.append(record)
         return digest
+
+    def _memory_history(self, limit: int) -> dict:
+        entries = []
+        for record in reversed(self.entries[-int(limit):]):
+            entry = dict(record)
+            entry.setdefault("persisted", False)
+            entry["store"] = "dynamodb" if entry.get("persisted") else "memory"
+            entries.append(entry)
+        return {"entries": entries, "source": "memory", "persisted": False}
+
+    def read_history(self, limit: int = 50) -> dict:
+        """
+        Read audit history back, newest first.
+
+        With a table configured, Query the one table for this
+        session's records (ScanIndexForward=False) and return them
+        with source="dynamodb", persisted=True. Records survive
+        process restarts that way, as long as the session id matches.
+
+        Any failure — no table configured, no credentials, no network,
+        query rejected — falls back to the in-memory entries and says
+        so (source="memory"). Memory is never dressed up as persisted.
+        """
+        if not self.table_name:
+            return self._memory_history(limit)
+        try:
+            resp = self._get_client().query(
+                TableName=self.table_name,
+                KeyConditionExpression="SessionId = :sid",
+                ExpressionAttributeValues={":sid": {"S": self.session_id}},
+                ScanIndexForward=False,
+                Limit=int(limit),
+            )
+            entries = []
+            for item in resp.get("Items", []):
+                raw_details = item.get("Details", {}).get("S", "")
+                try:
+                    details = json.loads(raw_details)
+                except (TypeError, ValueError):
+                    details = raw_details
+                entries.append(
+                    {
+                        "timestamp": float(item.get("Timestamp", {}).get("N", 0)),
+                        "action": item.get("Action", {}).get("S", ""),
+                        "details": details,
+                        "sha256": item.get("Sha256", {}).get("S", ""),
+                        "persisted": True,
+                        "store": "dynamodb",
+                    }
+                )
+            return {"entries": entries, "source": "dynamodb", "persisted": True}
+        except Exception as exc:  # no creds, no table, no network — stay honest
+            fallback = self._memory_history(limit)
+            fallback["read_error"] = type(exc).__name__
+            return fallback

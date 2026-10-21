@@ -1,0 +1,45 @@
+=== STEP 1: MCP initialize (Streamable HTTP) ===
+protocol negotiated: 2025-11-25
+server: BedrockOps 1.0.0
+
+=== STEP 2: tools/list ===
+- system_probe
+- audit_ledger
+- bedrock_route
+
+=== STEP 3: system_probe dynamodb (isError=False) ===
+{
+  "status": "HEALTHY",
+  "service": "dynamodb",
+  "mode": "stub",
+  "latency_ms": 14.2,
+  "timestamp": 1791325405.6311917
+}
+
+=== STEP 4: bedrock_route — destructive prompt hits the human gate (isError=False) ===
+{
+  "live": false,
+  "action": "requires_approval",
+  "reason": "gated action keyword",
+  "prompt": "delete the production database"
+}
+
+=== STEP 5: bedrock_route — normal audit request (live Bedrock only with credentials) (isError=False) ===
+{
+  "live": false,
+  "fallback_reason": "NoCredentialsError",
+  "action": "audit_ledger",
+  "prompt": "audit last night's deployment"
+}
+
+=== STEP 6: audit_ledger — SHA-256 + persistence state (isError=False) ===
+{
+  "verified": true,
+  "sha256": "62d5ef9bac352deb77e77ae5781d296da2c8d4eeb948d15bfc833448c17d21e7",
+  "persisted": false,
+  "store": "memory",
+  "timestamp": 1791325406.2426727
+}
+
+=== DEMO COMPLETE ===
+DEMO_EXIT=0
